@@ -64,12 +64,16 @@ app.get('/api/setup-db', async (req, res) => {
     res.json({ message: "✅ SUCCESS! Database tables built and populated.", productsCount: result.rows[0].c });
 
   } catch (err) {
+    const db = require('./config/db');
     res.json({ 
+      debug_info: {
+        DATABASE_URL_EXISTS: !!process.env.DATABASE_URL,
+        MYSQL_URL_EXISTS: !!process.env.MYSQL_URL,
+        DB_HOST_ENV: process.env.DB_HOST || "none",
+        attempted_to_connect_to: db.pool?.config?.connectionConfig?.host || "unknown",
+      },
       error: err.message || "Unknown Error", 
       code: err.code,
-      errno: err.errno,
-      sqlState: err.sqlState,
-      sqlMessage: err.sqlMessage,
       stack: err.stack,
       raw: JSON.stringify(err, Object.getOwnPropertyNames(err))
     });

@@ -1,14 +1,15 @@
 const mysql = require('mysql2/promise');
 const config = require('./index');
 
-// Railway provides EITHER individual vars OR a DATABASE_URL connection string.
+// Railway provides EITHER individual vars OR a DATABASE_URL / MYSQL_URL connection string.
 // We support both.
 let poolConfig;
+const connectionString = process.env.DATABASE_URL || process.env.MYSQL_URL;
 
-if (process.env.DATABASE_URL) {
+if (connectionString) {
   // Railway MySQL connection string format:
   // mysql://user:password@host:port/database
-  const url = new URL(process.env.DATABASE_URL);
+  const url = new URL(connectionString);
   poolConfig = {
     host: url.hostname,
     user: url.username,
