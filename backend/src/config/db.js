@@ -24,11 +24,11 @@ if (connectionString) {
 } else {
   // Ultimate Fallback: The exact Railway credentials 
   poolConfig = {
-    host: process.env.DB_HOST || config.db.host || 'mysql.railway.internal',
-    user: process.env.DB_USER || config.db.user || 'root',
-    password: process.env.DB_PASSWORD || config.db.password || 'xlizYBumxbufmWmGsuXFOpWWkSoKGkaU',
-    database: process.env.DB_NAME || config.db.database || 'railway',
-    port: parseInt(process.env.DB_PORT) || config.db.port || 3306,
+    host: process.env.DB_HOST || 'mysql.railway.internal',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || 'xlizYBumxbufmWmGsuXFOpWWkSoKGkaU',
+    database: process.env.DB_NAME || 'railway',
+    port: parseInt(process.env.DB_PORT) || 3306,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
