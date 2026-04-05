@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "Smart Checkout",
+    "slug": "smart-checkout",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#0a0f1c"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Smart Checkout needs camera access to scan product barcodes."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0a0f1c"
+      },
+      "permissions": [
+        "android.permission.CAMERA"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Smart Checkout needs camera access to scan product barcodes."
+        }
+      ],
+      "expo-asset"
+    ]
+  }
+}

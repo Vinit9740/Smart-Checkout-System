@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Checkout — Product Barcode Test Sheet</title>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f4ff;
+      padding: 30px;
+      color: #1a202c;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .page-header h1 {
+      font-size: 28px;
+      font-weight: 900;
+      color: #6366f1;
+      margin-bottom: 6px;
+    }
+    .page-header p {
+      font-size: 14px;
+      color: #64748b;
+      margin-bottom: 4px;
+    }
+    .print-btn {
+      display: inline-block;
+      margin-top: 14px;
+      background: #6366f1;
+      color: white;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 999px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+    }
+    .print-btn:hover { background: #4f46e5; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 28px 24px 20px;
+      border: 1.5px solid #e2e8f0;
+      box-shadow: 0 4px 20px rgba(99,102,241,0.08);
+      text-align: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 30px rgba(99,102,241,0.15);
+    }
+
+    .product-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #6366f1;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .product-name {
+      font-size: 18px;
+      font-weight: 800;
+      color: #1a202c;
+      margin-bottom: 4px;
+    }
+    .product-price {
+      font-size: 22px;
+      font-weight: 900;
+      color: #6366f1;
+      margin-bottom: 16px;
+    }
+    .barcode-wrap {
+      background: white;
+      padding: 12px 8px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+    svg.barcode {
+      width: 100%;
+      max-width: 240px;
+      height: auto;
+    }
+    .barcode-num {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 10px;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 2px;
+      background: #f8fafc;
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: inline-block;
+    }
+    .scan-tip {
+      margin-top: 10px;
+      font-size: 11px;
+      color: #94a3b8;
+    }
+    .error-msg {
+      color: #ef4444;
+      font-size: 13px;
+      padding: 10px;
+    }
+
+    @media print {
+      body { background: white; padding: 10px; }
+      .print-btn { display: none; }
+      .card { box-shadow: none; border: 1.5px solid #ccc; break-inside: avoid; }
+      .grid { gap: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>🛒 Smart Checkout — Test Barcodes</h1>
+  <p>Print this sheet or display it on screen.</p>
+  <p>Scan each barcode with the app to add products to your cart.</p>
+  <button class="print-btn" onclick="window.print()">🖨️ Print This Sheet</button>
+</div>
+
+<div class="grid" id="barcodeGrid"></div>
+
+<script>
+  const products = [
+    { label: 'Product 1', name: 'Whole Wheat Bread',  price: '₹45.00',  barcode: '8901234567890' },
+    { label: 'Product 2', name: 'Toned Milk 1L',       price: '₹55.00',  barcode: '8901234567891' },
+    { label: 'Product 3', name: 'Basmati Rice 1kg',    price: '₹120.00', barcode: '8901234567892' },
+    { label: 'Product 4', name: 'Olive Oil 500ml',     price: '₹350.00', barcode: '8901234567893' },
+    { label: 'Product 5', name: 'Dark Chocolate Bar',  price: '₹90.00',  barcode: '8901234567894' },
+  ];
+
+  const grid = document.getElementById('barcodeGrid');
+
+  products.forEach((p, i) => {
+    const svgId = 'bc' + i;
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="product-label">${p.label}</div>
+      <div class="product-name">${p.name}</div>
+      <div class="product-price">${p.price}</div>
+      <div class="barcode-wrap">
+        <svg class="barcode" id="${svgId}"></svg>
+      </div>
+      <div class="barcode-num">${p.barcode}</div>
+      <div class="scan-tip">📷 Scan with Smart Checkout app</div>
+    `;
+    grid.appendChild(card);
+
+    // Use CODE128 — works with any numeric/alphanumeric string, no check digit required
+    try {
+      JsBarcode('#' + svgId, p.barcode, {
+        format:       'CODE128',
+        width:        2,
+        height:       80,
+        displayValue: false,
+        margin:       8,
+        lineColor:    '#1a202c',
+        background:   '#ffffff',
+      });
+    } catch (e) {
+      document.getElementById(svgId).outerHTML =
+        `<div class="error-msg">⚠ Could not render barcode: ${e.message}</div>`;
+    }
+  });
+</script>
+
+</body>
+</html>
