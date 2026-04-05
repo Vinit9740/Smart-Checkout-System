@@ -1,38 +1,28 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const { globalLimiter } = require('./middleware/rateLimiter');
-const errorHandler = require('./middleware/errorHandler');
+const mysql = require('mysql2/promise');
 
-// Route imports
-const authRoutes = require('./routes/authRoutes');
-const sessionRoutes = require('./routes/sessionRoutes');
-const productRoutes = require('./routes/productRoutes');
-const cartRoutes = require('./routes/cartRoutes');
-const paymentRoutes = require('./routes/paymentRoutes');
-const exitRoutes = require('./routes/exitRoutes');
+// =========================================================================
+// REPLACE THESE 5 VALUES WITH YOUR RAILWAY MYSQL VARIABLES
+// =========================================================================
+const DB_HOST = 'mysql.railway.internal'; // E.g. viaduct.proxy.rlwy.net
+const DB_USER = 'root';
+const DB_PASSWORD = 'xlizYBumxbufmWmGsuXFOpWWkSoKGkaU';
+const DB_NAME = 'railway';
+const DB_PORT = 3306;
+// =========================================================================
 
-const app = express();
-
-// ── Global Middleware ─────────────────────────────
-app.use(helmet());
-app.use(cors());
-app.use(express.json({ limit: '1mb' }));
-app.use(express.urlencoded({ extended: true }));
-app.use(morgan('dev'));
-app.use(globalLimiter);
-
-// ── Health Check ──────────────────────────────────
-app.get('/api/health', (req, res) => {
-  res.json({ success: true, message: 'Smart Checkout API is running.', timestamp: new Date().toISOString() });
-});
-
-// ── Temporary Auto-Setup Route ──────────────────────
-app.get('/api/setup-db', async (req, res) => {
+(async () => {
   try {
-    const db = require('./config/db');
-    
+    console.log('Connecting to Railway MySQL...');
+    const c = await mysql.createConnection({
+      host: DB_HOST,
+      user: DB_USER,
+      password: DB_PASSWORD,
+      database: DB_NAME,
+      port: DB_PORT,
+      ssl: { rejectUnauthorized: false }
+    });
+
+    console.log('Connected! Creating tables...');
     const tables = [
       `CREATE TABLE IF NOT EXISTS users (id varchar(36) NOT NULL, name varchar(100) NOT NULL, email varchar(255) NOT NULL, password_hash varchar(255) NOT NULL, role varchar(20) DEFAULT 'user', created_at datetime DEFAULT CURRENT_TIMESTAMP, updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (id), UNIQUE KEY email (email))`,
       `CREATE TABLE IF NOT EXISTS products (id varchar(36) NOT NULL, name varchar(200) NOT NULL, barcode varchar(100) NOT NULL, price decimal(10,2) NOT NULL, category varchar(100) DEFAULT NULL, image_url varchar(500) DEFAULT NULL, stock_quantity int DEFAULT 0, created_at datetime DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (id), UNIQUE KEY barcode (barcode))`,
@@ -43,10 +33,9 @@ app.get('/api/setup-db', async (req, res) => {
       `CREATE TABLE IF NOT EXISTS audit_logs (id varchar(36) NOT NULL, user_id varchar(36) DEFAULT NULL, action varchar(100) NOT NULL, resource varchar(100) DEFAULT NULL, resource_id varchar(255) DEFAULT NULL, ip_address varchar(45) DEFAULT NULL, details json DEFAULT NULL, created_at datetime DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (id), CONSTRAINT audit_logs_ibfk_1 FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL)`
     ];
 
-    for (let t of tables) {
-      await db.query(t);
-    }
+    for (let t of tables) await c.query(t);
 
+    console.log('Inserting products...');
     const products = [
       `INSERT IGNORE INTO products (id, name, barcode, price, category, image_url, stock_quantity) VALUES ("prod-1", "Whole Wheat Bread", "8901234567890", 45.00, "Bakery", NULL, 150)`,
       `INSERT IGNORE INTO products (id, name, barcode, price, category, image_url, stock_quantity) VALUES ("prod-2", "Toned Milk 1L", "8901234567891", 55.00, "Dairy", NULL, 200)`,
@@ -55,34 +44,13 @@ app.get('/api/setup-db', async (req, res) => {
       `INSERT IGNORE INTO products (id, name, barcode, price, category, image_url, stock_quantity) VALUES ("prod-5", "Dark Chocolate Bar", "8901234567894", 90.00, "Snacks", NULL, 250)`
     ];
 
-    for (let p of products) {
-      await db.query(p);
-    }
-    
-    // Check final count
-    const result = await db.query('SELECT COUNT(*) as c FROM products');
-    res.json({ message: "✅ SUCCESS! Database tables built and populated.", productsCount: result.rows[0].c });
+    for (let p of products) await c.query(p);
 
+    const [rows] = await c.query('SELECT COUNT(*) as c FROM products');
+    console.log('✅ Success! Database is fully set up. Products found: ' + rows[0].c);
+
+    await c.end();
   } catch (err) {
-    res.json({ error: err.message, stack: err.stack });
+    console.error('❌ Error:', err.message);
   }
-});
-
-
-// ── API Routes ────────────────────────────────────
-app.use('/api/auth', authRoutes);
-app.use('/api/session', sessionRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/cart', cartRoutes);
-app.use('/api/payment', paymentRoutes);
-app.use('/api/exit', exitRoutes);
-
-// ── 404 Handler ───────────────────────────────────
-app.use((req, res) => {
-  res.status(404).json({ success: false, message: `Route ${req.originalUrl} not found.` });
-});
-
-// ── Error Handler ─────────────────────────────────
-app.use(errorHandler);
-
-module.exports = app;
+})();
