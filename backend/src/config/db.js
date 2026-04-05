@@ -22,17 +22,18 @@ if (connectionString) {
     ssl: { rejectUnauthorized: false }, // Required for Railway MySQL
   };
 } else {
+  // Ultimate Fallback: The exact Railway credentials 
   poolConfig = {
-    host: config.db.host,
-    user: config.db.user,
-    password: config.db.password,
-    database: config.db.database,
-    port: config.db.port,
+    host: process.env.DB_HOST || config.db.host || 'mysql.railway.internal',
+    user: process.env.DB_USER || config.db.user || 'root',
+    password: process.env.DB_PASSWORD || config.db.password || 'xlizYBumxbufmWmGsuXFOpWWkSoKGkaU',
+    database: process.env.DB_NAME || config.db.database || 'railway',
+    port: parseInt(process.env.DB_PORT) || config.db.port || 3306,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
-    // Enable SSL for Railway/cloud environments
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    // Enable SSL for Railway
+    ssl: { rejectUnauthorized: false },
   };
 }
 
