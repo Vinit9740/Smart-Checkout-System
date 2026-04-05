@@ -1,15 +1,19 @@
 const app = require('./app');
 const config = require('./config');
 
-const PORT = config.port;
+// Railway (and most cloud platforms) inject PORT as an env variable.
+// We MUST listen on 0.0.0.0 (not just localhost) for the service to be reachable.
+const PORT = process.env.PORT || config.port || 3000;
+const HOST = '0.0.0.0';
 
-app.listen(PORT, () => {
+app.listen(PORT, HOST, () => {
   console.log(`
   ╔══════════════════════════════════════════════╗
   ║   Smart Checkout System — API Server         ║
   ║   Mode: ${config.nodeEnv.padEnd(36)}║
   ║   Port: ${String(PORT).padEnd(36)}║
-  ║   URL:  http://localhost:${String(PORT).padEnd(19)}║
+  ║   Host: ${HOST.padEnd(36)}║
   ╚══════════════════════════════════════════════╝
   `);
 });
+
