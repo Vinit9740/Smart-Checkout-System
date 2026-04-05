@@ -8,17 +8,19 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "backgroundColor": "#0a0f1c"
+      "backgroundColor": "#F8F9FC"
     },
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.smartcheckout.app",
       "infoPlist": {
         "NSCameraUsageDescription": "Smart Checkout needs camera access to scan product barcodes."
       }
     },
     "android": {
+      "package": "com.smartcheckout.app",
       "adaptiveIcon": {
-        "backgroundColor": "#0a0f1c"
+        "backgroundColor": "#F8F9FC"
       },
       "permissions": [
         "android.permission.CAMERA"
