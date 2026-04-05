@@ -64,7 +64,15 @@ app.get('/api/setup-db', async (req, res) => {
     res.json({ message: "✅ SUCCESS! Database tables built and populated.", productsCount: result.rows[0].c });
 
   } catch (err) {
-    res.json({ error: err.message, stack: err.stack });
+    res.json({ 
+      error: err.message || "Unknown Error", 
+      code: err.code,
+      errno: err.errno,
+      sqlState: err.sqlState,
+      sqlMessage: err.sqlMessage,
+      stack: err.stack,
+      raw: JSON.stringify(err, Object.getOwnPropertyNames(err))
+    });
   }
 });
 
