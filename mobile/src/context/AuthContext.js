@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from '../services/api';
+import { supabase } from '../config/supabase';
 
 const AuthContext = createContext(null);
 
@@ -21,11 +20,10 @@ export const AuthProvider = ({ children }) => {
 
   const loadStoredAuth = async () => {
     try {
-      const storedToken = await AsyncStorage.getItem('token');
-      const storedUser = await AsyncStorage.getItem('user');
-      if (storedToken && storedUser) {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setToken(session.access_token);
+        setUser(session.user);
       }
     } catch (e) {
       console.error('Failed to load auth:', e);
@@ -35,27 +33,37 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (email, password) => {
-    const result = await api.login(email, password);
-    const { user: userData, token: authToken } = result.data;
-    await AsyncStorage.setItem('token', authToken);
-    await AsyncStorage.setItem('user', JSON.stringify(userData));
-    setToken(authToken);
-    setUser(userData);
-    return result;
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) throw error;
+    
+    setUser(data.user);
+    setToken(data.session.access_token);
+    return { success: true };
   };
 
   const register = async (name, email, password) => {
-    const result = await api.register(name, email, password);
-    const { user: userData, token: authToken } = result.data;
-    await AsyncStorage.setItem('token', authToken);
-    await AsyncStorage.setItem('user', JSON.stringify(userData));
-    setToken(authToken);
-    setUser(userData);
-    return result;
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name: name,
+        },
+      },
+    });
+    if (error) throw error;
+    
+    setUser(data.user);
+    setToken(data.session?.access_token || null);
+    return { success: true };
   };
 
   const logout = async () => {
-    await AsyncStorage.multiRemove(['token', 'user']);
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
     setToken(null);
     setUser(null);
   };

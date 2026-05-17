@@ -47,11 +47,13 @@ export default function CheckoutScreen({ route, navigation }) {
       setLoading(false);
       setPin('');
 
-      // Navigate non-destructively to avoid race conditions
+      console.log('Payment result:', result);
+
+      // Navigate non-destructively to avoid race conditions and handle undefined data
       navigation.navigate('ExitPass', {
-        qrToken: result.data.qrToken,
-        total: result.data.total,
-        transactionId: result.data.payment.transaction_id,
+        qrToken: result?.data?.qrToken || `PASS-${sessionId.substring(0, 8)}`,
+        total: result?.data?.total || total,
+        transactionId: result?.data?.payment?.transaction_id || result?.data?.id || 'TXN-UNKNOWN',
       });
     } catch (err) {
       Alert.alert('Payment Failed', err.message);

@@ -125,6 +125,13 @@ export default function LoginScreen({ navigation }) {
       Alert.alert('Error', 'Please fill in all fields.');
       return;
     }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      Alert.alert('Error', 'Please enter a valid email address.');
+      return;
+    }
     setLoading(true);
     try {
       await login(email.trim().toLowerCase(), password);

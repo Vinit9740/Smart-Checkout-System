@@ -128,7 +128,8 @@ export default function HomeScreen({ navigation }) {
   const fetchHistory = async () => {
     try {
       const res = await api.getHistory();
-      if (res.success) setHistory(res.data);
+      // api.getHistory returns { data }, so we check for res.data
+      if (res.data) setHistory(res.data);
     } catch (err) {
       console.log('Failed to fetch history:', err.message);
     } finally {
@@ -146,8 +147,8 @@ export default function HomeScreen({ navigation }) {
     setLoading(true);
     try {
       const result = await api.startSession();
-      const session = result.data.session;
-      navigation.navigate('Scanner', { sessionId: session.id });
+      // result.data is the inserted session object itself
+      navigation.navigate('Scanner', { sessionId: result.data.id });
     } catch (err) {
       Alert.alert('Error', err.message);
     } finally {
@@ -171,7 +172,7 @@ export default function HomeScreen({ navigation }) {
         <DoodleBackground />
         <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
           <Text style={styles.greetingText}>{greeting()}</Text>
-          <Text style={styles.userName}>{user?.name || 'Shopper'} 👋</Text>
+          <Text style={styles.userName}>{user?.user_metadata?.name || user?.name || 'Shopper'} 👋</Text>
           <Text style={styles.headerSub}>Ready for a seamless shopping trip?</Text>
         </Animated.View>
 

@@ -30,8 +30,8 @@ function CartItem({ item, onDecrement, onDelete, removing, deleting }) {
             <Text style={styles.itemIcon}>🛍</Text>
           </View>
           <View style={styles.itemInfo}>
-            <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
-            <Text style={styles.itemMeta}>{item.category || 'General'} · {item.barcode}</Text>
+            <Text style={styles.itemName} numberOfLines={1}>{item.products?.name || 'Unknown Item'}</Text>
+            <Text style={styles.itemMeta}>{item.category || 'General'} · {item.products?.barcode || 'No Barcode'}</Text>
           </View>
           {/* Delete entire item button */}
           <TouchableOpacity
@@ -197,7 +197,7 @@ export default function CartScreen({ route, navigation }) {
               <CartItem
                 item={item}
                 onDecrement={() => handleDecrement(item.product_id)}
-                onDelete={() => handleDelete(item.product_id, item.name)}
+                onDelete={() => handleDelete(item.product_id, item.products?.name || 'Unknown Item')}
                 removing={removing === item.product_id}
                 deleting={deleting === item.product_id}
               />

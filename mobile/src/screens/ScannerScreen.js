@@ -97,13 +97,28 @@ export default function ScannerScreen({ route, navigation }) {
             </View>
              <View style={styles.overlaySide} />
           </View>
-          <View style={[styles.overlayBottom, { alignItems: 'center', paddingTop: 20 }]}>
-            <TouchableOpacity 
-              style={{ backgroundColor: COLORS.primary, padding: 10, borderRadius: 8 }}
-              onPress={() => handleBarCodeScanned({ data: '8901234567890' })}
-            >
-              <Text style={{ fontWeight: 'bold' }}>Simulate Scan (Test)</Text>
-            </TouchableOpacity>
+          <View style={[styles.overlayBottom, { alignItems: 'center', paddingTop: 10 }]}>
+            <Text style={{ color: '#FFFFFF', fontSize: FONT_SIZES.sm, marginBottom: 8, fontWeight: '600' }}>Simulate Scan:</Text>
+            <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+              <TouchableOpacity 
+                style={{ backgroundColor: COLORS.primary, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 8 }}
+                onPress={() => handleBarCodeScanned({ data: '1111111111111' })}
+              >
+                <Text style={{ fontWeight: 'bold', color: COLORS.black }}>🥤 Cola</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={{ backgroundColor: COLORS.primary, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 8 }}
+                onPress={() => handleBarCodeScanned({ data: '2222222222222' })}
+              >
+                <Text style={{ fontWeight: 'bold', color: COLORS.black }}>🍞 Bread</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={{ backgroundColor: COLORS.primary, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 8 }}
+                onPress={() => handleBarCodeScanned({ data: '3333333333333' })}
+              >
+                <Text style={{ fontWeight: 'bold', color: COLORS.black }}>🥛 Milk</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </CameraView>

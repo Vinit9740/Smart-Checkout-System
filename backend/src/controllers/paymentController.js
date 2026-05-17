@@ -36,6 +36,10 @@ const paymentController = {
 
       // Process payment (simulated)
       const payment = await paymentModel.create(sessionId, req.user.id, total, method);
+      
+      if (!payment) {
+        return next(new AppError('Failed to create payment record.', 500));
+      }
 
       // Update session: set total, mark completed, generate QR token
       const qrToken = uuidv4();
@@ -49,7 +53,7 @@ const paymentController = {
         qrToken,
         userId: req.user.id,
         amount: total,
-        transactionId: payment.transaction_id,
+        transactionId: payment.transaction_id || 'TXN-UNKNOWN',
       });
       const qrCodeDataUrl = await QRCode.toDataURL(qrData, {
         width: 300,
