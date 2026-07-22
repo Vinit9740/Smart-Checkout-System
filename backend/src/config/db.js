@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const mysql = require('mysql2/promise');
 const config = require('./index');
 
@@ -22,17 +24,15 @@ if (connectionString) {
     ssl: { rejectUnauthorized: false }, // Required for Railway MySQL
   };
 } else {
-  // Ultimate Fallback: The exact Railway credentials 
   poolConfig = {
-    host: process.env.DB_HOST || 'mysql.railway.internal',
+    host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || 'xlizYBumxbufmWmGsuXFOpWWkSoKGkaU',
-    database: process.env.DB_NAME || 'railway',
-    port: parseInt(process.env.DB_PORT) || 3306,
+    password: process.env.DB_PASSWORD || 'user123',
+    database: process.env.DB_NAME || 'smart_checkout',
+    port: parseInt(process.env.DB_PORT, 10) || 3306,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
-    // Enable SSL for Railway
     ssl: { rejectUnauthorized: false },
   };
 }
@@ -43,8 +43,49 @@ const pool = mysql.createPool(poolConfig);
 
 pool.on('error', (err) => {
   console.error('[DB] Unexpected pool error:', err.message);
-  process.exit(-1);
+  if (err.code !== 'PROTOCOL_CONNECTION_LOST') {
+    process.exit(-1);
+  }
 });
+
+function isIgnorableSchemaError(error) {
+  return [
+    'ER_DUP_KEYNAME',
+    'ER_DUP_KEY',
+    'ER_DUP_FIELDNAME',
+    'ER_TABLE_EXISTS_ERROR',
+    'ER_DB_CREATE_EXISTS',
+  ].includes(error.code);
+}
+
+async function initializeDatabase() {
+  try {
+    const schemaPath = path.join(__dirname, '..', '..', 'database', 'schema.sql');
+    const schemaSql = fs.readFileSync(schemaPath, 'utf8');
+
+    const statements = schemaSql
+      .split(';')
+      .map((statement) => statement.trim())
+      .filter(Boolean)
+      .filter((statement) => !statement.startsWith('--'));
+
+    for (const statement of statements) {
+      try {
+        await pool.query(statement);
+      } catch (error) {
+        if (isIgnorableSchemaError(error)) {
+          continue;
+        }
+        throw error;
+      }
+    }
+
+    console.log('[DB] Database schema initialized successfully.');
+  } catch (error) {
+    console.error('[DB] Failed to initialize database schema:', error.message);
+    throw error;
+  }
+}
 
 module.exports = {
   query: async (text, params) => {
@@ -53,5 +94,6 @@ module.exports = {
   },
   getConnection: () => pool.getConnection(),
   pool,
+  initializeDatabase,
 };
 
