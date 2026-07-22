@@ -6,14 +6,18 @@ const config = require('./config');
 const PORT = process.env.PORT || config.port || 3000;
 const HOST = '0.0.0.0';
 
-app.listen(PORT, HOST, () => {
-  console.log(`
-  ╔══════════════════════════════════════════════╗
-  ║   Smart Checkout System — API Server         ║
-  ║   Mode: ${config.nodeEnv.padEnd(36)}║
-  ║   Port: ${String(PORT).padEnd(36)}║
-  ║   Host: ${HOST.padEnd(36)}║
-  ╚══════════════════════════════════════════════╝
-  `);
-});
+if (require.main === module) {
+  app.listen(PORT, HOST, () => {
+    console.log(`
+    ╔══════════════════════════════════════════════╗
+    ║   Smart Checkout System — API Server         ║
+    ║   Mode: ${config.nodeEnv.padEnd(36)}║
+    ║   Port: ${String(PORT).padEnd(36)}║
+    ║   Host: ${HOST.padEnd(36)}║
+    ╚══════════════════════════════════════════════╝
+    `);
+  });
+}
+
+module.exports = app;
 
