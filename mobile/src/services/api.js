@@ -9,9 +9,17 @@ const getAuthHeaders = async () => {
   };
 };
 
+const normalizeUrl = (base, path) => {
+  const trimmedBase = (base || '').replace(/\/$/, '');
+  const trimmedPath = path.replace(/^\/+/, '/');
+  const url = trimmedBase ? `${trimmedBase}${trimmedPath}` : trimmedPath;
+  return url.replace(/\/api\/api\//g, '/api/');
+};
+
 const request = async (path, options = {}) => {
   const headers = await getAuthHeaders();
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const url = normalizeUrl(API_BASE_URL, path);
+  const response = await fetch(url, {
     ...options,
     headers: {
       ...headers,
