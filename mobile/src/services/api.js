@@ -250,12 +250,29 @@ const api = {
     
     const { data, error } = await supabase
       .from('payments')
-      .select('*, sessions(*)')
+      .select('*, sessions(*, cart_items(*, products(*)))')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return { data };
+
+    // Map each payment record to inject complete bill items
+    const mappedData = (data || []).map(payment => {
+      const session = payment.sessions;
+      const cartItems = session?.cart_items || [];
+      const items = cartItems.map(item => ({
+        id: item.id,
+        quantity: item.quantity,
+        price_at_scan: item.price_at_scan,
+        name: item.products?.name || 'Unknown Item',
+      }));
+      return {
+        ...payment,
+        items,
+      };
+    });
+
+    return { data: mappedData };
   },
 
   // ── Exit ────────────────────────────────
