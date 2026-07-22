@@ -33,12 +33,12 @@ app.get('/', (req, res) => {
   });
 });
 
-app.get('/health', (req, res) => {
+app.get('/api/health', (req, res) => {
   res.json({ success: true, message: 'Smart Checkout API is running.', timestamp: new Date().toISOString() });
 });
 
 // ── Temporary Auto-Setup Route ──────────────────────
-app.get('/setup-db', async (req, res) => {
+app.get('/api/setup-db', async (req, res) => {
   try {
     const db = require('./config/db');
 
@@ -91,12 +91,12 @@ app.get('/setup-db', async (req, res) => {
 
 
 // ── API Routes ────────────────────────────────────
-app.use('/auth', authRoutes);
-app.use('/session', sessionRoutes);
-app.use('/products', productRoutes);
-app.use('/cart', cartRoutes);
-app.use('/payment', paymentRoutes);
-app.use('/exit', exitRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/session', sessionRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/cart', cartRoutes);
+app.use('/api/payment', paymentRoutes);
+app.use('/api/exit', exitRoutes);
 
 // ── 404 Handler ───────────────────────────────────
 app.use((req, res) => {
