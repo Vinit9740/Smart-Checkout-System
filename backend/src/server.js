@@ -1,4 +1,5 @@
-const app = require('./app');
+const express = require('express');
+const apiApp = require('./app');
 const config = require('./config');
 const db = require('./config/db');
 
@@ -9,6 +10,9 @@ const HOST = '0.0.0.0';
 
 function startServer(port = PORT, attempts = 0) {
   try {
+    const app = express();
+    app.use('/api', apiApp);
+
     const server = app.listen(port, HOST, () => {
       console.log(`
       ╔══════════════════════════════════════════════╗
