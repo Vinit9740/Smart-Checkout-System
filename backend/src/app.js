@@ -23,6 +23,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 app.use(globalLimiter);
 
+// ── Normalise optional /api prefix for Vercel paths ─────────────────────────
+app.use((req, res, next) => {
+  if (req.path === '/api' || req.path.startsWith('/api/')) {
+    req.url = req.url.replace(/^\/api/, '') || '/';
+  }
+  next();
+});
+
 // ── Health Check ──────────────────────────────────
 app.get('/', (req, res) => {
   res.json({
