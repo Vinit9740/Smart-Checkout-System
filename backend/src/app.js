@@ -24,6 +24,15 @@ app.use(morgan('dev'));
 app.use(globalLimiter);
 
 // ── Health Check ──────────────────────────────────
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Smart Checkout API is running.',
+    docs: 'Use /api/health or /api/auth/register',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ success: true, message: 'Smart Checkout API is running.', timestamp: new Date().toISOString() });
 });
@@ -32,7 +41,7 @@ app.get('/api/health', (req, res) => {
 app.get('/api/setup-db', async (req, res) => {
   try {
     const db = require('./config/db');
-    
+
     const tables = [
       `CREATE TABLE IF NOT EXISTS users (id varchar(36) NOT NULL, name varchar(100) NOT NULL, email varchar(255) NOT NULL, password_hash varchar(255) NOT NULL, role varchar(20) DEFAULT 'user', created_at datetime DEFAULT CURRENT_TIMESTAMP, updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (id), UNIQUE KEY email (email))`,
       `CREATE TABLE IF NOT EXISTS products (id varchar(36) NOT NULL, name varchar(200) NOT NULL, barcode varchar(100) NOT NULL, price decimal(10,2) NOT NULL, category varchar(100) DEFAULT NULL, image_url varchar(500) DEFAULT NULL, stock_quantity int DEFAULT 0, created_at datetime DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (id), UNIQUE KEY barcode (barcode))`,
@@ -58,21 +67,21 @@ app.get('/api/setup-db', async (req, res) => {
     for (let p of products) {
       await db.query(p);
     }
-    
+
     // Check final count
     const result = await db.query('SELECT COUNT(*) as c FROM products');
     res.json({ message: "✅ SUCCESS! Database tables built and populated.", productsCount: result.rows[0].c });
 
   } catch (err) {
     const db = require('./config/db');
-    res.json({ 
+    res.json({
       debug_info: {
         DATABASE_URL_EXISTS: !!process.env.DATABASE_URL,
         MYSQL_URL_EXISTS: !!process.env.MYSQL_URL,
         DB_HOST_ENV: process.env.DB_HOST || "none",
         attempted_to_connect_to: db.pool?.config?.connectionConfig?.host || "unknown",
       },
-      error: err.message || "Unknown Error", 
+      error: err.message || "Unknown Error",
       code: err.code,
       stack: err.stack,
       raw: JSON.stringify(err, Object.getOwnPropertyNames(err))
