@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, FlatList,
-  Alert, ActivityIndicator, Animated, StatusBar,
+  Alert, ActivityIndicator, Animated, StatusBar, Platform,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { COLORS, SPACING, FONT_SIZES, BORDER_RADIUS, SHADOWS } from '../constants/theme';
@@ -30,8 +30,8 @@ function CartItem({ item, onDecrement, onDelete, removing, deleting }) {
             <Text style={styles.itemIcon}>🛍</Text>
           </View>
           <View style={styles.itemInfo}>
-            <Text style={styles.itemName} numberOfLines={1}>{item.products?.name || 'Unknown Item'}</Text>
-            <Text style={styles.itemMeta}>{item.category || 'General'} · {item.products?.barcode || 'No Barcode'}</Text>
+            <Text style={styles.itemName} numberOfLines={1}>{item.name || 'Unknown Item'}</Text>
+            <Text style={styles.itemMeta}>{item.category || 'General'} · {item.barcode || 'No Barcode'}</Text>
           </View>
           {/* Delete entire item button */}
           <TouchableOpacity
@@ -124,28 +124,47 @@ export default function CartScreen({ route, navigation }) {
 
   // Delete the ENTIRE item regardless of quantity
   const handleDelete = (productId, productName) => {
-    Alert.alert(
-      'Remove Item',
-      `Remove all "${productName}" from cart?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove', style: 'destructive',
-          onPress: async () => {
-            setDeleting(productId);
-            try {
-              const result = await api.deleteFromCart(sessionId, productId);
-              setTotal(result.data.cartTotal);
-              await loadCart();
-            } catch (err) {
-              Alert.alert('Error', err.message);
-            } finally {
-              setDeleting(null);
-            }
+    // Alert.alert with buttons does NOT fire callbacks on web (only window.alert is used).
+    // Use window.confirm directly on web for reliable cross-platform confirmation.
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm(`Remove all "${productName}" from cart?`);
+      if (!confirmed) return;
+      (async () => {
+        setDeleting(productId);
+        try {
+          const result = await api.deleteFromCart(sessionId, productId);
+          setTotal(result.data.cartTotal);
+          await loadCart();
+        } catch (err) {
+          window.alert('Remove failed: ' + err.message);
+        } finally {
+          setDeleting(null);
+        }
+      })();
+    } else {
+      Alert.alert(
+        'Remove Item',
+        `Remove all "${productName}" from cart?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Remove', style: 'destructive',
+            onPress: async () => {
+              setDeleting(productId);
+              try {
+                const result = await api.deleteFromCart(sessionId, productId);
+                setTotal(result.data.cartTotal);
+                await loadCart();
+              } catch (err) {
+                Alert.alert('Error', err.message);
+              } finally {
+                setDeleting(null);
+              }
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
+    }
   };
 
 
@@ -197,7 +216,7 @@ export default function CartScreen({ route, navigation }) {
               <CartItem
                 item={item}
                 onDecrement={() => handleDecrement(item.product_id)}
-                onDelete={() => handleDelete(item.product_id, item.products?.name || 'Unknown Item')}
+                onDelete={() => handleDelete(item.product_id, item.name || 'Unknown Item')}
                 removing={removing === item.product_id}
                 deleting={deleting === item.product_id}
               />

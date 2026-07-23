@@ -15,9 +15,33 @@ const exitRoutes = require('./routes/exitRoutes');
 
 const app = express();
 
+// ── CORS Configuration ────────────────────────────────
+// Allows all localhost ports for dev + any production domain via ALLOWED_ORIGINS env var
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
+  : [];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (native mobile apps, Postman, curl)
+    if (!origin) return callback(null, true);
+    // Allow any localhost / 127.0.0.1 origin for local development
+    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return callback(null, true);
+    // Allow configured production origins
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error(`CORS: origin ${origin} not allowed`));
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200,
+};
+
 // ── Global Middleware ─────────────────────────────
-app.use(helmet());
-app.use(cors());
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // handle preflight for all routes
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));

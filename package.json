@@ -1,0 +1,9 @@
+{
+  "name": "smart-checkout-system",
+  "version": "1.0.0",
+  "description": "Full-stack Smart Checkout System",
+  "private": true,
+  "scripts": {
+    "postinstall": "cd backend && npm install && cd ../mobile && npm install"
+  }
+}

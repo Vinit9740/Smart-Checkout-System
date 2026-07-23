@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, ScrollView, TextInput
+  View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, ScrollView, TextInput, Platform
 } from 'react-native';
 import { COLORS, SPACING, FONT_SIZES, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 import api from '../services/api';
@@ -22,14 +22,20 @@ export default function CheckoutScreen({ route, navigation }) {
 
   const triggerPaymentFlow = () => {
     if (method === 'cash') {
-      Alert.alert(
-        'Confirm Cash Payment',
-        'Please confirm you will pay the cash amount directly at the counter before exiting.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Proceed', onPress: () => executePayment() }
-        ]
-      );
+      // Alert.alert buttons don't fire callbacks on web — use window.confirm instead
+      if (Platform.OS === 'web') {
+        const ok = window.confirm('Confirm Cash Payment\n\nPlease confirm you will pay the cash amount directly at the counter before exiting.');
+        if (ok) executePayment();
+      } else {
+        Alert.alert(
+          'Confirm Cash Payment',
+          'Please confirm you will pay the cash amount directly at the counter before exiting.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Proceed', onPress: () => executePayment() }
+          ]
+        );
+      }
     } else if (method === 'upi' || method === 'card') {
       setPinModalVisible(true);
     } else {
@@ -65,7 +71,11 @@ export default function CheckoutScreen({ route, navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.7}>
+          <Text style={styles.backBtnText}>←</Text>
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Checkout</Text>
+        <View style={styles.backBtn} />{/* spacer to keep title centered */}
       </View>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -162,6 +172,25 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingHorizontal: SPACING.lg,
     paddingBottom: SPACING.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.surfaceLight,
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backBtnText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+    lineHeight: 24,
   },
   headerTitle: {
     fontSize: FONT_SIZES.xxl,

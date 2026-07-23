@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView
+  View, Text, TouchableOpacity, StyleSheet, ScrollView
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { COLORS, SPACING, FONT_SIZES, BORDER_RADIUS, SHADOWS } from '../constants/theme';
