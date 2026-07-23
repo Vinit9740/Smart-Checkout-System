@@ -27,8 +27,10 @@ const corsOptions = {
     if (!origin) return callback(null, true);
     // Allow any localhost / 127.0.0.1 origin for local development
     if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return callback(null, true);
-    // Allow configured production origins
-    if (allowedOrigins.includes(origin)) return callback(null, true);
+    // Allow configured production origins or wildcard
+    if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
     callback(new Error(`CORS: origin ${origin} not allowed`));
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
